@@ -1,539 +1,698 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Teardown Sản phẩm AI — NotebookLM / Gemini Notebook</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg-dark: #0a0e17;
-      --bg-card: rgba(22, 30, 46, 0.7);
-      --border-card: rgba(255, 255, 255, 0.1);
-      --primary: #4f80ff;
-      --primary-glow: rgba(79, 128, 255, 0.35);
-      --accent: #00e5ff;
-      --accent-purple: #a855f7;
-      --accent-green: #10b981;
-      --text-main: #f1f5f9;
-      --text-sub: #94a3b8;
-      --text-muted: #64748b;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teardown Sản phẩm AI — NotebookLM / Gemini Notebook</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-dark: #0a0e17;
+        --bg-card: rgba(22, 30, 46, 0.7);
+        --border-card: rgba(255, 255, 255, 0.1);
+        --primary: #4f80ff;
+        --primary-glow: rgba(79, 128, 255, 0.35);
+        --accent: #00e5ff;
+        --accent-purple: #a855f7;
+        --accent-green: #10b981;
+        --text-main: #f1f5f9;
+        --text-sub: #94a3b8;
+        --text-muted: #64748b;
+      }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-    body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      overflow-x: hidden;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-    }
-
-    .slider-container {
-      width: 100vw;
-      height: 100vh;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .slide {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-      transform: translateY(20px) scale(0.98);
-      display: flex;
-      flex-direction: column;
-      padding: 2.5rem 4rem;
-      justify-content: center;
-    }
-
-    .slide.active {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0) scale(1);
-    }
-
-    .bg-glow {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(120px);
-      pointer-events: none;
-      z-index: 0;
-    }
-    .glow-1 {
-      top: -10%;
-      right: -10%;
-      width: 500px;
-      height: 500px;
-      background: var(--primary-glow);
-    }
-    .glow-2 {
-      bottom: -10%;
-      left: -10%;
-      width: 450px;
-      height: 450px;
-      background: rgba(168, 85, 247, 0.2);
-    }
-
-    .slide-content {
-      position: relative;
-      z-index: 1;
-      max-width: 1350px;
-      margin: 0 auto;
-      width: 100%;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 6px 16px;
-      border-radius: 99px;
-      background: rgba(79, 128, 255, 0.15);
-      border: 1px solid rgba(79, 128, 255, 0.3);
-      color: var(--accent);
-      font-size: 0.85rem;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      margin-bottom: 1rem;
-    }
-
-    h1 {
-      font-size: 3.2rem;
-      font-weight: 800;
-      line-height: 1.15;
-      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 1rem;
-    }
-
-    h2 {
-      font-size: 2.1rem;
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 1.2rem;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    p.subtitle {
-      font-size: 1.15rem;
-      color: var(--text-sub);
-      max-width: 850px;
-      line-height: 1.6;
-      margin-bottom: 2rem;
-    }
-
-    .grid {
-      display: grid;
-      gap: 1.2rem;
-    }
-    .grid-2 { grid-template-columns: repeat(2, 1fr); }
-    .grid-3 { grid-template-columns: repeat(3, 1fr); }
-    .grid-4 { grid-template-columns: repeat(4, 1fr); }
-
-    .card {
-      background: var(--bg-card);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--border-card);
-      border-radius: 16px;
-      padding: 1.3rem;
-      transition: all 0.3s ease;
-    }
-    .card:hover {
-      border-color: rgba(79, 128, 255, 0.4);
-      transform: translateY(-3px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-    }
-
-    .card-title {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--accent);
-      margin-bottom: 0.5rem;
-    }
-
-    .card-text {
-      font-size: 0.9rem;
-      color: var(--text-sub);
-      line-height: 1.5;
-    }
-
-    /* Timeline Table Styling */
-    .timeline-table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0 6px;
-    }
-
-    .timeline-table th {
-      padding: 8px 12px;
-      text-align: left;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .timeline-table td {
-      background: var(--bg-card);
-      padding: 10px 12px;
-      font-size: 0.83rem;
-      border-top: 1px solid var(--border-card);
-      border-bottom: 1px solid var(--border-card);
-    }
-    .timeline-table tr td:first-child {
-      border-left: 1px solid var(--border-card);
-      border-top-left-radius: 10px;
-      border-bottom-left-radius: 10px;
-      font-weight: 700;
-      color: var(--accent);
-      white-space: nowrap;
-    }
-    .timeline-table tr td:last-child {
-      border-right: 1px solid var(--border-card);
-      border-top-right-radius: 10px;
-      border-bottom-right-radius: 10px;
-    }
-
-    .tag-principle {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 6px;
-      background: rgba(168, 85, 247, 0.15);
-      border: 1px solid rgba(168, 85, 247, 0.3);
-      color: #d8b4fe;
-      font-size: 0.78rem;
-      font-weight: 600;
-    }
-
-    .nav-controls {
-      position: absolute;
-      bottom: 1.8rem;
-      right: 3rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      z-index: 10;
-    }
-
-    .btn-nav {
-      background: var(--bg-card);
-      border: 1px solid var(--border-card);
-      color: #fff;
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 1.1rem;
-      transition: all 0.2s;
-    }
-    .btn-nav:hover {
-      background: var(--primary);
-      border-color: var(--primary);
-    }
-
-    .slide-counter {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--text-sub);
-    }
-
-    @media print {
       body {
-        overflow: visible;
-        background: #0f172a;
+        font-family: "Plus Jakarta Sans", sans-serif;
+        background-color: var(--bg-dark);
+        color: var(--text-main);
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
       }
+
       .slider-container {
-        height: auto;
-      }
-      .slide {
-        position: relative;
-        opacity: 1 !important;
-        visibility: visible !important;
-        transform: none !important;
-        page-break-after: always;
+        width: 100vw;
         height: 100vh;
+        position: relative;
+        overflow: hidden;
       }
+
+      .slide {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        transform: translateY(20px) scale(0.98);
+        display: flex;
+        flex-direction: column;
+        padding: 2.5rem 4rem;
+        justify-content: center;
+      }
+
+      .slide.active {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0) scale(1);
+      }
+
+      .bg-glow {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(120px);
+        pointer-events: none;
+        z-index: 0;
+      }
+      .glow-1 {
+        top: -10%;
+        right: -10%;
+        width: 500px;
+        height: 500px;
+        background: var(--primary-glow);
+      }
+      .glow-2 {
+        bottom: -10%;
+        left: -10%;
+        width: 450px;
+        height: 450px;
+        background: rgba(168, 85, 247, 0.2);
+      }
+
+      .slide-content {
+        position: relative;
+        z-index: 1;
+        max-width: 1350px;
+        margin: 0 auto;
+        width: 100%;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 6px 16px;
+        border-radius: 99px;
+        background: rgba(79, 128, 255, 0.15);
+        border: 1px solid rgba(79, 128, 255, 0.3);
+        color: var(--accent);
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-bottom: 1rem;
+      }
+
+      h1 {
+        font-size: 3.2rem;
+        font-weight: 800;
+        line-height: 1.15;
+        background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem;
+      }
+
+      h2 {
+        font-size: 2.1rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      p.subtitle {
+        font-size: 1.15rem;
+        color: var(--text-sub);
+        max-width: 850px;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+      }
+
+      .grid {
+        display: grid;
+        gap: 1.2rem;
+      }
+      .grid-2 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .grid-3 {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .grid-4 {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .card {
+        background: var(--bg-card);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--border-card);
+        border-radius: 16px;
+        padding: 1.3rem;
+        transition: all 0.3s ease;
+      }
+      .card:hover {
+        border-color: rgba(79, 128, 255, 0.4);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      }
+
+      .card-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--accent);
+        margin-bottom: 0.5rem;
+      }
+
+      .card-text {
+        font-size: 0.9rem;
+        color: var(--text-sub);
+        line-height: 1.5;
+      }
+
+      /* Timeline Table Styling */
+      .timeline-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 6px;
+      }
+
+      .timeline-table th {
+        padding: 8px 12px;
+        text-align: left;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .timeline-table td {
+        background: var(--bg-card);
+        padding: 10px 12px;
+        font-size: 0.83rem;
+        border-top: 1px solid var(--border-card);
+        border-bottom: 1px solid var(--border-card);
+      }
+      .timeline-table tr td:first-child {
+        border-left: 1px solid var(--border-card);
+        border-top-left-radius: 10px;
+        border-bottom-left-radius: 10px;
+        font-weight: 700;
+        color: var(--accent);
+        white-space: nowrap;
+      }
+      .timeline-table tr td:last-child {
+        border-right: 1px solid var(--border-card);
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
+      }
+
+      .tag-principle {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 6px;
+        background: rgba(168, 85, 247, 0.15);
+        border: 1px solid rgba(168, 85, 247, 0.3);
+        color: #d8b4fe;
+        font-size: 0.78rem;
+        font-weight: 600;
+      }
+
       .nav-controls {
-        display: none;
+        position: absolute;
+        bottom: 1.8rem;
+        right: 3rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        z-index: 10;
       }
-    }
-  </style>
-</head>
-<body>
 
-<div class="slider-container">
-  <div class="bg-glow glow-1"></div>
-  <div class="bg-glow glow-2"></div>
-
-  <!-- SLIDE 1: COVER -->
-  <div class="slide active">
-    <div class="slide-content">
-      <span class="badge">Track 1 — AI Product Teardown</span>
-      <h1>TEARDOWN SẢN PHẨM AI<br><span style="color: var(--primary);">NOTEBOOKLM → GEMINI NOTEBOOK</span></h1>
-      <p class="subtitle">Từ thử nghiệm Grounded RAG đến hệ sinh thái học tập đa phương tiện & Vòng lặp tri thức chủ động.</p>
-      
-      <div class="grid grid-3" style="margin-top: 2.5rem;">
-        <div class="card">
-          <div class="card-title">Nhóm thực hiện</div>
-          <div class="card-text">Product Teardown Mastermind</div>
-        </div>
-        <div class="card">
-          <div class="card-title">Thành viên</div>
-          <div class="card-text">Lê Hoàng Nam · Trần Minh Anh · Nguyễn Đức Việt</div>
-        </div>
-        <div class="card">
-          <div class="card-title">Sản phẩm Teardown</div>
-          <div class="card-text">Google NotebookLM (Gemini Notebook)</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SLIDE 2: 8 TIMELINE MILESTONES -->
-  <div class="slide">
-    <div class="slide-content">
-      <span class="badge">§1. Timeline Cột Mốc</span>
-      <h2>8 Quyết Định Sản Phẩm Định Hình NotebookLM</h2>
-      
-      <table class="timeline-table">
-        <thead>
-          <tr>
-            <th>Thời điểm</th>
-            <th>Cập nhật chính</th>
-            <th>Context lúc đó</th>
-            <th>Nguyên lý cốt lõi</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>05–07/2023</td>
-            <td>Project Tailwind → NotebookLM</td>
-            <td>ChatGPT bùng nổ, rủi ro hallucination & thiếu context riêng</td>
-            <td><span class="tag-principle">Wrapper → Moat</span></td>
-          </tr>
-          <tr>
-            <td>06/2024</td>
-            <td>Gemini 1.5 Pro + Global Expansion</td>
-            <td>Long context 1M token mở rộng khả năng xử lý dữ liệu lớn</td>
-            <td><span class="tag-principle">x10 Capacity</span></td>
-          </tr>
-          <tr>
-            <td>09/2024</td>
-            <td>⭐ Audio Overviews (AI Podcast)</td>
-            <td>User mệt mỏi với text tóm tắt khô khan, muốn nghe thụ động</td>
-            <td><span class="tag-principle">Định nghĩa "Tốt"</span></td>
-          </tr>
-          <tr>
-            <td>12/2024</td>
-            <td>Interactive Audio (Hỏi đáp AI Hosts)</td>
-            <td>Trải nghiệm nghe 1 chiều → cần hỏi đáp tương tác 2 chiều</td>
-            <td><span class="tag-principle">Vòng Lặp Học (Learning Loop)</span></td>
-          </tr>
-          <tr>
-            <td>05/2025</td>
-            <td>NotebookLM Mobile App</td>
-            <td>Audio tạo context mới: nghe khi đi đường, tập thể thao</td>
-            <td><span class="tag-principle">JTBD > Feature</span></td>
-          </tr>
-          <tr>
-            <td>07/2025</td>
-            <td>⭐ Video Overviews + Studio</td>
-            <td>Đồ thị/quy trình cần biểu diễn trực quan bên cạnh âm thanh</td>
-            <td><span class="tag-principle">x10 qua Representation</span></td>
-          </tr>
-          <tr>
-            <td>2025–26</td>
-            <td>⭐ Flashcards, Quizzes & Practice</td>
-            <td>Chuyển từ tiêu thụ thụ động sang kiểm tra/khép vòng lặp học</td>
-            <td><span class="tag-principle">Learning Loop + Mastery</span></td>
-          </tr>
-          <tr>
-            <td>07/2026</td>
-            <td>⭐ Rebrand Gemini Notebook</td>
-            <td>NotebookLM đạt quy mô lớn, đưa vào Gemini Ecosystem</td>
-            <td><span class="tag-principle">Moat > Wrapper</span></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- SLIDE 3: USER SEGMENT & JTBD SHIFT -->
-  <div class="slide">
-    <div class="slide-content">
-      <span class="badge">§2. Tệp User & JTBD</span>
-      <h2>Chuyển Dịch Tệp Người Dùng: From Consumption to Active Mastery</h2>
-      
-      <div class="grid grid-2">
-        <div class="card" style="border-left: 4px solid var(--accent);">
-          <div class="card-title" style="font-size: 1.2rem;">Early Adopters (2023–2024)</div>
-          <p class="card-text" style="margin-top: 8px;"><strong>Đặc điểm:</strong> Nghiên cứu sinh, sinh viên, học thuật đọc PDF dài.</p>
-          <p class="card-text" style="margin-top: 6px;"><strong>JTBD:</strong> "Tóm tắt & trích dẫn chính xác 20 bài báo PDF để làm nghiên cứu không bị hallucinate."</p>
-          <p class="card-text" style="margin-top: 6px;"><strong>Cách cũ:</strong> Đọc Ctrl+F thủ công, nốt vào Notion/Obsidian.</p>
-        </div>
-
-        <div class="card" style="border-left: 4px solid var(--accent-purple);">
-          <div class="card-title" style="font-size: 1.2rem; color: var(--accent-purple);">Tệp Hiện Tại (2025–2026)</div>
-          <p class="card-text" style="margin-top: 8px;"><strong>Đặc điểm:</strong> Học sinh ôn thi, người đi làm, Podcasters, Audio/Visual Learners.</p>
-          <p class="card-text" style="margin-top: 6px;"><strong>JTBD:</strong> "Biến đống tài liệu khô khan thành Podcast nghe khi tập gym, Video sơ đồ trực quan, và Flashcards/Quiz để luyện tập thuộc bài."</p>
-          <p class="card-text" style="margin-top: 6px;"><strong>Cách cũ:</strong> Làm Quizlet thủ công, vừa nghe vừa chép bài phân mảnh.</p>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top: 1.2rem; background: rgba(79, 128, 255, 0.1);">
-        <div class="card-title">Chuỗi Catalyst Dịch Chuyển Tệp</div>
-        <div class="card-text"><strong>Audio Overview (09/2024)</strong> → <strong>Mobile App (05/2025)</strong> → <strong>Video Studio (07/2025)</strong> → <strong>Flashcards & Quizzes (2025–26)</strong>: Biến sản phẩm từ công cụ "Đọc tóm tắt" thành "Hệ thống làm chủ tri thức toàn diện".</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SLIDE 4: SWITCHING COST & 4 FORCES -->
-  <div class="slide">
-    <div class="slide-content">
-      <span class="badge">§2. Switching Cost</span>
-      <h2>Ma Trận 4 Forces Giữ Chân Người Dùng</h2>
-      
-      <div class="grid grid-2">
-        <div class="card">
-          <div class="card-title" style="color: #ef4444;">1. Push of Present (Lực đẩy)</div>
-          <div class="card-text">Quá tải tài liệu khô khan; cảm giác đọc xong vẫn không nhớ hay hiểu sâu; mệt mỏi mắt trước máy tính.</div>
-        </div>
-        <div class="card">
-          <div class="card-title" style="color: #10b981;">2. Pull of New (Lực kéo)</div>
-          <div class="card-text">Chuyển 1 nguồn dữ liệu thành Podcast nghe trên đường, Video sơ đồ, và Quiz tự luyện tập có AI chấm điểm.</div>
-        </div>
-        <div class="card">
-          <div class="card-title" style="color: #f59e0b;">3. Habit of Present (Thói quen)</div>
-          <div class="card-text">Thói quen ghi chú truyền thống; thói quen dùng Quizlet độc lập; thói quen lưu file folder.</div>
-        </div>
-        <div class="card">
-          <div class="card-title" style="color: #6366f1;">4. Anxiety of New (Nỗi lo)</div>
-          <div class="card-text">Nỗi lo AI tạo câu hỏi Quiz sai kiến thức hoặc làm mất đi tư duy phản biện tự nhiên khi tự ôn bài.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SLIDE 5: 3 PREDICTIONS -->
-  <div class="slide">
-    <div class="slide-content">
-      <span class="badge">§3. Dự Đoán 6–12 Tháng</span>
-      <h2>3 Dự Đoán Hướng Đi Chiến Lược (2026–2027)</h2>
-      
-      <div class="grid grid-3">
-        <div class="card">
-          <span class="badge" style="font-size: 0.75rem;">Active Learning</span>
-          <div class="card-title">1. Adaptive Mastery Graph</div>
-          <div class="card-text"><strong>Dự đoán:</strong> AI tự động phát hiện lỗ hổng tri thức (knowledge gap) và đề xuất lộ trình Spaced Repetition.<br><br><strong>Lập luận:</strong> Trỏ từ mốc Flashcards/Quizzes (2025–26) & Vòng lặp học (Step 1-2).</div>
-        </div>
-
-        <div class="card">
-          <span class="badge" style="font-size: 0.75rem; background: rgba(168, 85, 247, 0.15); color: var(--accent-purple);">Ecosystem B2B</span>
-          <div class="card-title">2. Education & Enterprise Spaces</div>
-          <div class="card-text"><strong>Dự đoán:</strong> Chia sẻ Notebook động cho lớp học/doanh nghiệp, theo dõi tiến độ học tập thực tế.<br><br><strong>Lập luận:</strong> Trỏ từ mốc Rebrand Gemini Notebook (07/2026) & Mobile (05/2025).</div>
-        </div>
-
-        <div class="card">
-          <span class="badge" style="font-size: 0.75rem; background: rgba(16, 185, 129, 0.15); color: #34d399;">Multimodal Interactive</span>
-          <div class="card-title">3. Live Multimodal AI Tutor</div>
-          <div class="card-text"><strong>Dự đoán:</strong> Chiếu camera vào bài tập vẽ/sơ đồ và đối thoại trực tiếp với AI Tutor trên bảng trắng điện tử.<br><br><strong>Lập luận:</strong> Trỏ từ Interactive Audio (12/2024) & Video Studio (07/2025).</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SLIDE 6: AI LOG -->
-  <div class="slide">
-    <div class="slide-content">
-      <span class="badge">§4. AI Log & Trách Nhiệm</span>
-      <h2>Khai Báo Trung Thực Vai Trò Của AI</h2>
-      
-      <div class="grid grid-3">
-        <div class="card">
-          <div class="card-title">Tổng hợp nguồn & Timeline</div>
-          <div class="card-text"><strong>Nhóm làm:</strong> Chọn 8 cột mốc trọng yếu nhất.<br><br><strong>Kiểm chứng:</strong> Đối chiếu với blog chính thức của Google để xác minh dữ liệu.</div>
-        </div>
-        <div class="card">
-          <div class="card-title">Revert nguyên lý cốt lõi</div>
-          <div class="card-text"><strong>Nhóm làm:</strong> Trực tiếp revert nguyên lý cho từng mốc.<br><br><strong>Kiểm chứng:</strong> Thống nhất đặt tên chuẩn nguyên lý (Wrapper→Moat, x10, Learning Loop,...).</div>
-        </div>
-        <div class="card">
-          <div class="card-title">4 Forces & 3 Dự đoán</div>
-          <div class="card-text"><strong>Nhóm + AI:</strong> AI gợi ý khung cấu trúc tổng hợp.<br><br><strong>Kiểm chứng:</strong> Nhóm chất vấn từng lập luận trỏ về mốc §1–§2 và hoàn thiện memo.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Navigation Controls -->
-  <div class="nav-controls">
-    <button class="btn-nav" id="prevBtn">&larr;</button>
-    <span class="slide-counter" id="slideCounter">1 / 6</span>
-    <button class="btn-nav" id="nextBtn">&rarr;</button>
-  </div>
-</div>
-
-<script>
-  const slides = document.querySelectorAll('.slide');
-  const prevBtn = document.getElementById('prevBtn');
-  const nextBtn = document.getElementById('nextBtn');
-  const slideCounter = document.getElementById('slideCounter');
-  let currentSlide = 0;
-
-  function updateSlide() {
-    slides.forEach((slide, index) => {
-      if (index === currentSlide) {
-        slide.classList.add('active');
-      } else {
-        slide.classList.remove('active');
+      .btn-nav {
+        background: var(--bg-card);
+        border: 1px solid var(--border-card);
+        color: #fff;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1.1rem;
+        transition: all 0.2s;
       }
-    });
-    slideCounter.textContent = `${currentSlide + 1} / ${slides.length}`;
-  }
+      .btn-nav:hover {
+        background: var(--primary);
+        border-color: var(--primary);
+      }
 
-  prevBtn.addEventListener('click', () => {
-    currentSlide = (currentSlide - 1 + slides.length) % slides.length;
-    updateSlide();
-  });
+      .slide-counter {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-sub);
+      }
 
-  nextBtn.addEventListener('click', () => {
-    currentSlide = (currentSlide + 1) % slides.length;
-    updateSlide();
-  });
+      @media print {
+        @page {
+          size: 16in 9in;
+          margin: 0;
+        }
 
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight' || e.key === 'Space') {
-      currentSlide = (currentSlide + 1) % slides.length;
-      updateSlide();
-    } else if (e.key === 'ArrowLeft') {
-      currentSlide = (currentSlide - 1 + slides.length) % slides.length;
-      updateSlide();
-    }
-  });
-</script>
+        body {
+          overflow: visible;
+          background: #0f172a;
+        }
+        .slider-container {
+          height: auto;
+        }
+        .slide {
+          position: relative;
+          opacity: 1 !important;
+          visibility: visible !important;
+          transform: none !important;
+          page-break-after: always;
+          break-after: page;
+          width: 100%;
+          height: 9in;
+          min-height: 9in;
+        }
+        .slide:nth-last-of-type(2) {
+          page-break-after: auto;
+          break-after: auto;
+        }
+        .nav-controls {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="slider-container">
+      <div class="bg-glow glow-1"></div>
+      <div class="bg-glow glow-2"></div>
 
-</body>
+      <!-- SLIDE 1: COVER -->
+      <div class="slide active">
+        <div class="slide-content">
+          <span class="badge">Track 1 — AI Product Teardown</span>
+          <h1>
+            TEARDOWN SẢN PHẨM AI<br /><span style="color: var(--primary)"
+              >NOTEBOOKLM → GEMINI NOTEBOOK</span
+            >
+          </h1>
+          <p class="subtitle">
+            Từ thử nghiệm Grounded RAG đến hệ sinh thái học tập đa phương tiện &
+            Vòng lặp tri thức chủ động.
+          </p>
+
+          <div class="grid grid-3" style="margin-top: 2.5rem">
+            <div class="card">
+              <div class="card-title">Nhóm thực hiện</div>
+              <div class="card-text">Product Teardown Mastermind</div>
+            </div>
+            <div class="card">
+              <div class="card-title">Thành viên</div>
+              <div class="card-text">
+                Nguyễn Thị Tuyết Mai · Trần Thị Vân Anh · Lê Thị Linh
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">Sản phẩm Teardown</div>
+              <div class="card-text">Google NotebookLM (Gemini Notebook)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 2: 8 TIMELINE MILESTONES -->
+      <div class="slide">
+        <div class="slide-content">
+          <span class="badge">§1. Timeline Cột Mốc</span>
+          <h2>8 Quyết Định Sản Phẩm Định Hình NotebookLM</h2>
+
+          <table class="timeline-table">
+            <thead>
+              <tr>
+                <th>Thời điểm</th>
+                <th>Cập nhật chính</th>
+                <th>Context lúc đó</th>
+                <th>Nguyên lý cốt lõi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>05–07/2023</td>
+                <td>Project Tailwind → NotebookLM</td>
+                <td>
+                  ChatGPT bùng nổ, rủi ro hallucination & thiếu context riêng
+                </td>
+                <td><span class="tag-principle">Wrapper → Moat</span></td>
+              </tr>
+              <tr>
+                <td>06/2024</td>
+                <td>Gemini 1.5 Pro + Global Expansion</td>
+                <td>
+                  Long context 1M token mở rộng khả năng xử lý dữ liệu lớn
+                </td>
+                <td><span class="tag-principle">x10 Capacity</span></td>
+              </tr>
+              <tr>
+                <td>09/2024</td>
+                <td>⭐ Audio Overviews (AI Podcast)</td>
+                <td>
+                  User mệt mỏi với text tóm tắt khô khan, muốn nghe thụ động
+                </td>
+                <td><span class="tag-principle">Định nghĩa "Tốt"</span></td>
+              </tr>
+              <tr>
+                <td>12/2024</td>
+                <td>Interactive Audio (Hỏi đáp AI Hosts)</td>
+                <td>
+                  Trải nghiệm nghe 1 chiều → cần hỏi đáp tương tác 2 chiều
+                </td>
+                <td>
+                  <span class="tag-principle"
+                    >Vòng Lặp Học (Learning Loop)</span
+                  >
+                </td>
+              </tr>
+              <tr>
+                <td>05/2025</td>
+                <td>NotebookLM Mobile App</td>
+                <td>Audio tạo context mới: nghe khi đi đường, tập thể thao</td>
+                <td><span class="tag-principle">JTBD > Feature</span></td>
+              </tr>
+              <tr>
+                <td>07/2025</td>
+                <td>⭐ Video Overviews + Studio</td>
+                <td>
+                  Đồ thị/quy trình cần biểu diễn trực quan bên cạnh âm thanh
+                </td>
+                <td>
+                  <span class="tag-principle">x10 qua Representation</span>
+                </td>
+              </tr>
+              <tr>
+                <td>2025–26</td>
+                <td>⭐ Flashcards, Quizzes & Practice</td>
+                <td>
+                  Chuyển từ tiêu thụ thụ động sang kiểm tra/khép vòng lặp học
+                </td>
+                <td>
+                  <span class="tag-principle">Learning Loop + Mastery</span>
+                </td>
+              </tr>
+              <tr>
+                <td>07/2026</td>
+                <td>⭐ Rebrand Gemini Notebook</td>
+                <td>NotebookLM đạt quy mô lớn, đưa vào Gemini Ecosystem</td>
+                <td><span class="tag-principle">Moat > Wrapper</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SLIDE 3: USER SEGMENT & JTBD SHIFT -->
+      <div class="slide">
+        <div class="slide-content">
+          <span class="badge">§2. Tệp User & JTBD</span>
+          <h2>
+            Chuyển Dịch Tệp Người Dùng: From Consumption to Active Mastery
+          </h2>
+
+          <div class="grid grid-2">
+            <div class="card" style="border-left: 4px solid var(--accent)">
+              <div class="card-title" style="font-size: 1.2rem">
+                Early Adopters (2023–2024)
+              </div>
+              <p class="card-text" style="margin-top: 8px">
+                <strong>Đặc điểm:</strong> Nghiên cứu sinh, sinh viên, học thuật
+                đọc PDF dài.
+              </p>
+              <p class="card-text" style="margin-top: 6px">
+                <strong>JTBD:</strong> "Tóm tắt & trích dẫn chính xác 20 bài báo
+                PDF để làm nghiên cứu không bị hallucinate."
+              </p>
+              <p class="card-text" style="margin-top: 6px">
+                <strong>Cách cũ:</strong> Đọc Ctrl+F thủ công, nốt vào
+                Notion/Obsidian.
+              </p>
+            </div>
+
+            <div
+              class="card"
+              style="border-left: 4px solid var(--accent-purple)"
+            >
+              <div
+                class="card-title"
+                style="font-size: 1.2rem; color: var(--accent-purple)"
+              >
+                Tệp Hiện Tại (2025–2026)
+              </div>
+              <p class="card-text" style="margin-top: 8px">
+                <strong>Đặc điểm:</strong> Học sinh ôn thi, người đi làm,
+                Podcasters, Audio/Visual Learners.
+              </p>
+              <p class="card-text" style="margin-top: 6px">
+                <strong>JTBD:</strong> "Biến đống tài liệu khô khan thành
+                Podcast nghe khi tập gym, Video sơ đồ trực quan, và
+                Flashcards/Quiz để luyện tập thuộc bài."
+              </p>
+              <p class="card-text" style="margin-top: 6px">
+                <strong>Cách cũ:</strong> Làm Quizlet thủ công, vừa nghe vừa
+                chép bài phân mảnh.
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="card"
+            style="margin-top: 1.2rem; background: rgba(79, 128, 255, 0.1)"
+          >
+            <div class="card-title">Chuỗi Catalyst Dịch Chuyển Tệp</div>
+            <div class="card-text">
+              <strong>Audio Overview (09/2024)</strong> →
+              <strong>Mobile App (05/2025)</strong> →
+              <strong>Video Studio (07/2025)</strong> →
+              <strong>Flashcards & Quizzes (2025–26)</strong>: Biến sản phẩm từ
+              công cụ "Đọc tóm tắt" thành "Hệ thống làm chủ tri thức toàn diện".
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 4: SWITCHING COST & 4 FORCES -->
+      <div class="slide">
+        <div class="slide-content">
+          <span class="badge">§2. Switching Cost</span>
+          <h2>Ma Trận 4 Forces Giữ Chân Người Dùng</h2>
+
+          <div class="grid grid-2">
+            <div class="card">
+              <div class="card-title" style="color: #ef4444">
+                1. Push of Present (Lực đẩy)
+              </div>
+              <div class="card-text">
+                Quá tải tài liệu khô khan; cảm giác đọc xong vẫn không nhớ hay
+                hiểu sâu; mệt mỏi mắt trước máy tính.
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title" style="color: #10b981">
+                2. Pull of New (Lực kéo)
+              </div>
+              <div class="card-text">
+                Chuyển 1 nguồn dữ liệu thành Podcast nghe trên đường, Video sơ
+                đồ, và Quiz tự luyện tập có AI chấm điểm.
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title" style="color: #f59e0b">
+                3. Habit of Present (Thói quen)
+              </div>
+              <div class="card-text">
+                Thói quen ghi chú truyền thống; thói quen dùng Quizlet độc lập;
+                thói quen lưu file folder.
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title" style="color: #6366f1">
+                4. Anxiety of New (Nỗi lo)
+              </div>
+              <div class="card-text">
+                Nỗi lo AI tạo câu hỏi Quiz sai kiến thức hoặc làm mất đi tư duy
+                phản biện tự nhiên khi tự ôn bài.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 5: 3 PREDICTIONS -->
+      <div class="slide">
+        <div class="slide-content">
+          <span class="badge">§3. Dự Đoán 6–12 Tháng</span>
+          <h2>3 Dự Đoán Hướng Đi Chiến Lược (2026–2027)</h2>
+
+          <div class="grid grid-3">
+            <div class="card">
+              <span class="badge" style="font-size: 0.75rem"
+                >Active Learning</span
+              >
+              <div class="card-title">1. Adaptive Mastery Graph</div>
+              <div class="card-text">
+                <strong>Dự đoán:</strong> AI tự động phát hiện lỗ hổng tri thức
+                (knowledge gap) và đề xuất lộ trình Spaced Repetition.<br /><br /><strong
+                  >Lập luận:</strong
+                >
+                Trỏ từ mốc Flashcards/Quizzes (2025–26) & Vòng lặp học (Step
+                1-2).
+              </div>
+            </div>
+
+            <div class="card">
+              <span
+                class="badge"
+                style="
+                  font-size: 0.75rem;
+                  background: rgba(168, 85, 247, 0.15);
+                  color: var(--accent-purple);
+                "
+                >Ecosystem B2B</span
+              >
+              <div class="card-title">2. Education & Enterprise Spaces</div>
+              <div class="card-text">
+                <strong>Dự đoán:</strong> Chia sẻ Notebook động cho lớp
+                học/doanh nghiệp, theo dõi tiến độ học tập thực tế.<br /><br /><strong
+                  >Lập luận:</strong
+                >
+                Trỏ từ mốc Rebrand Gemini Notebook (07/2026) & Mobile (05/2025).
+              </div>
+            </div>
+
+            <div class="card">
+              <span
+                class="badge"
+                style="
+                  font-size: 0.75rem;
+                  background: rgba(16, 185, 129, 0.15);
+                  color: #34d399;
+                "
+                >Multimodal Interactive</span
+              >
+              <div class="card-title">3. Live Multimodal AI Tutor</div>
+              <div class="card-text">
+                <strong>Dự đoán:</strong> Chiếu camera vào bài tập vẽ/sơ đồ và
+                đối thoại trực tiếp với AI Tutor trên bảng trắng điện tử.<br /><br /><strong
+                  >Lập luận:</strong
+                >
+                Trỏ từ Interactive Audio (12/2024) & Video Studio (07/2025).
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 6: AI LOG -->
+      <div class="slide">
+        <div class="slide-content">
+          <span class="badge">§4. AI Log & Trách Nhiệm</span>
+          <h2>Khai Báo Trung Thực Vai Trò Của AI</h2>
+
+          <div class="grid grid-3">
+            <div class="card">
+              <div class="card-title">Tổng hợp nguồn & Timeline</div>
+              <div class="card-text">
+                <strong>Nhóm làm:</strong> Chọn 8 cột mốc trọng yếu nhất.<br /><br /><strong
+                  >Kiểm chứng:</strong
+                >
+                Đối chiếu với blog chính thức của Google để xác minh dữ liệu.
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">Revert nguyên lý cốt lõi</div>
+              <div class="card-text">
+                <strong>Nhóm làm:</strong> Trực tiếp revert nguyên lý cho từng
+                mốc.<br /><br /><strong>Kiểm chứng:</strong> Thống nhất đặt tên
+                chuẩn nguyên lý (Wrapper→Moat, x10, Learning Loop,...).
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">4 Forces & 3 Dự đoán</div>
+              <div class="card-text">
+                <strong>Nhóm + AI:</strong> AI gợi ý khung cấu trúc tổng hợp.<br /><br /><strong
+                  >Kiểm chứng:</strong
+                >
+                Nhóm chất vấn từng lập luận trỏ về mốc §1–§2 và hoàn thiện memo.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Controls -->
+      <div class="nav-controls">
+        <button class="btn-nav" id="prevBtn">&larr;</button>
+        <span class="slide-counter" id="slideCounter">1 / 6</span>
+        <button class="btn-nav" id="nextBtn">&rarr;</button>
+      </div>
+    </div>
+
+    <script>
+      const slides = document.querySelectorAll(".slide");
+      const prevBtn = document.getElementById("prevBtn");
+      const nextBtn = document.getElementById("nextBtn");
+      const slideCounter = document.getElementById("slideCounter");
+      let currentSlide = 0;
+
+      function updateSlide() {
+        slides.forEach((slide, index) => {
+          if (index === currentSlide) {
+            slide.classList.add("active");
+          } else {
+            slide.classList.remove("active");
+          }
+        });
+        slideCounter.textContent = `${currentSlide + 1} / ${slides.length}`;
+      }
+
+      prevBtn.addEventListener("click", () => {
+        currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+        updateSlide();
+      });
+
+      nextBtn.addEventListener("click", () => {
+        currentSlide = (currentSlide + 1) % slides.length;
+        updateSlide();
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === "Space") {
+          currentSlide = (currentSlide + 1) % slides.length;
+          updateSlide();
+        } else if (e.key === "ArrowLeft") {
+          currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+          updateSlide();
+        }
+      });
+    </script>
+  </body>
 </html>
