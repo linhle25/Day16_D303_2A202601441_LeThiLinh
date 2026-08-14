@@ -1,6 +1,6 @@
 # Memo Teardown — GOOGLE NOTEBOOKLM (GEMINI NOTEBOOK)
 
-**Nhóm:** Product Teardown NOTEBOOKLM
+**Nhóm:** LASTIN
 
 **Thành viên:**
 
